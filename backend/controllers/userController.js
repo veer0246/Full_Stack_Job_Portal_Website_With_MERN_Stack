@@ -84,4 +84,56 @@ export const login = async (req, res) => {
     }
 }
 
+// create user logout-----------------------------------------------------------
+export const logout = async (req, res) => {
+    try {
+        return res.status(200).cookie("token", "", { maxAge: 0 }).json({
+            message: "Logged out successfully.",
+            success: true
+        })
+    } catch (error) {
+        return res.json({ message: "Error some thing", success: false, error: message })
+        // console.log(error)  // you can write this code here
+    }
+}
 
+// update user profile---------------------------------------------------------
+export const updateProfile = async (req, res) => {
+    try {
+        const { fullname, email, phoneNumber, bio, skills } = req.body;
+        const file = req.file;// access file 
+
+        if (!fullname || !email || !phoneNumber || !bio || !skills) {
+            return res.status(400).json({ message: "Something is missing", success: false });
+        };
+
+        const skillsArray = skills.split(",")
+        const userId = req.id; // it comes from middleware authentication
+        let user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(400).json({ message: "User not found.", success: false })
+        }
+
+        //update data--
+        user.fullname = fullname,
+            user.email = email,
+            user.phoneNumber = phoneNumber,
+            user.profile.bio = bio,
+            user.profile.skills = skillsArray
+
+        await user.save();
+        user = {
+            _id: user._id,
+            fullname: user.fullname,
+            email: user.email,
+            phoneNumber: user.phoneNumber,
+            role: user.role,
+            profile: user.profile
+        }
+        return res.status(200).json({message:"Profile updated successfully.", user, success:true})
+
+    } catch (error) {
+        console.log(error)
+    }
+}
