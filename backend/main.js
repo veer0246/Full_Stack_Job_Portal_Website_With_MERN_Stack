@@ -5,9 +5,9 @@ import cors from 'cors';
 import dotenv from 'dotenv' 
 dotenv.config({});
 import connectDB from './utils/db.js';
+import userRoutes from './routes/userRoutes.js';
+
 const app = express();   
-
-
 
 app.get('/home',(req,res)=>{
     return res.status(200).json({
@@ -27,6 +27,9 @@ const corsOptions = {
 }
 app.use(cors(corsOptions))  
 
+
+// create api routes----------------
+app.use("/user",userRoutes)
 
 
 // server to listen on this port--------

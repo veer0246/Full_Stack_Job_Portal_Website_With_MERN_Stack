@@ -1,8 +1,8 @@
 import { User } from "../models/userModel.js";
 import bcrypt from "bcryptjs";
-import token from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 
-// user register---------------------
+// 1- user register================================================================================================
 export const register = async (req, res) => {
     try {
         const { fullname, email, phoneNumber, password, role } = req.body;
@@ -25,15 +25,15 @@ export const register = async (req, res) => {
             password: hashedPassword,
             role
         })
-        return res.json({ msg: "User Account  created successfully", success: true, data })
+        return res.json({ message: "User Account  created successfully", success: true, data })
 
     } catch (error) {
 
-        return res.json({ msg: "Error in creating user Account", success: false, error: message })
+        return res.json({ message: "Error in creating user Account", success: false, error: message })
     }
 }
 
-//User login---------------------------------------------------
+// 2-User login================================================================================================
 export const login = async (req, res) => {
     try {
         // access email, password and role from the body---
@@ -54,7 +54,7 @@ export const login = async (req, res) => {
             return res.status(400).json({ message: "Incorrect email or password", success: false })
         };
 
-        // check user role --------
+        // check user role correct or not--------
         if (role != user.role) {
             return res.status(400).json({ message: "Account doesn't exist with current role.", success: false })
         }
@@ -63,7 +63,7 @@ export const login = async (req, res) => {
         const tokenData = {
             userId: user._id
         }
-        const token = await jwt.sign(tokenData, process.env.SECRATE_KEY, { expiresIn: '1d' });
+        const token = await jwt.sign(tokenData, process.env.SECRET_KEY, { expiresIn: '1d' });
 
         user = {
             _id: user._id,
@@ -74,9 +74,9 @@ export const login = async (req, res) => {
             profile: user.profile
         }
 
-        //create cookie to store token for security purpose--
-        return res.status(200).cookie("token", token, { maxAge: 1 * 24 * 60 * 60 * 1000, httpsOnly: true, sameSite: 'strict' }).json({
-            message: `Welcome back ${user.name}`, user, success: true
+        //create cookie to store token, for security purpose--
+        return res.status(200).cookie("tokenName", token, { maxAge: 1 * 24 * 60 * 60 * 1000, httpsOnly: true, sameSite: 'strict' }).json({
+            message: `Welcome back ${user.fullname}`, user, success: true
         })
 
     } catch (error) {
@@ -84,7 +84,7 @@ export const login = async (req, res) => {
     }
 }
 
-// create user logout-----------------------------------------------------------
+// 3- create user logout========================================================================================
 export const logout = async (req, res) => {
     try {
         return res.status(200).cookie("token", "", { maxAge: 0 }).json({
@@ -92,22 +92,26 @@ export const logout = async (req, res) => {
             success: true
         })
     } catch (error) {
-        return res.json({ message: "Error some thing", success: false, error: message })
+        return res.json({ message: "Error something", success: false, error: message })
         // console.log(error)  // you can write this code here
     }
 }
 
-// update user profile---------------------------------------------------------
+// 4- update user profile=========================================================================================
 export const updateProfile = async (req, res) => {
     try {
         const { fullname, email, phoneNumber, bio, skills } = req.body;
         const file = req.file;// access file 
 
-        if (!fullname || !email || !phoneNumber || !bio || !skills) {
-            return res.status(400).json({ message: "Something is missing", success: false });
-        };
+        // if (!fullname || !email || !phoneNumber || !bio || !skills) {
+        //     return res.status(400).json({ message: "Something is missing", success: false });
+        // };
 
-        const skillsArray = skills.split(",")
+        let skillsArray;
+        if (skillsArray) {
+            skillsArray = skills.split(",")
+        }
+
         const userId = req.id; // it comes from middleware authentication
         let user = await User.findById(userId);
 
@@ -116,11 +120,11 @@ export const updateProfile = async (req, res) => {
         }
 
         //update data--
-        user.fullname = fullname,
-            user.email = email,
-            user.phoneNumber = phoneNumber,
-            user.profile.bio = bio,
-            user.profile.skills = skillsArray
+        if (fullname) user.fullname = fullname
+        if (email) user.email = email
+        if (phoneNumber) user.phoneNumber = phoneNumber
+        if (bio) user.profile.bio = bio
+        if (skills) user.profile.skills = skillsArray
 
         await user.save();
         user = {
@@ -131,7 +135,7 @@ export const updateProfile = async (req, res) => {
             role: user.role,
             profile: user.profile
         }
-        return res.status(200).json({message:"Profile updated successfully.", user, success:true})
+        return res.status(200).json({ message: "Profile updated successfully.", user, success: true })
 
     } catch (error) {
         console.log(error)
