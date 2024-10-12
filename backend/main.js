@@ -2,10 +2,11 @@ import express from 'express';
 // const express = require('express');  // this is the old way to import module
 import cookieParser from "cookie-parser";
 import cors from 'cors';
-import dotenv from 'dotenv' 
+import dotenv from 'dotenv';
 dotenv.config({});
 import connectDB from './utils/db.js';
 import userRoutes from './routes/userRoutes.js';
+import companyRoutes from './routes/companyRoutes.js';
 
 const app = express();   
 
@@ -27,14 +28,14 @@ const corsOptions = {
 }
 app.use(cors(corsOptions))  
 
-
+   
 // create api routes----------------
-app.use("/user",userRoutes)
-
+app.use("/api/user",userRoutes)
+app.use("/api/company", companyRoutes)
 
 // server to listen on this port--------
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, ()=>{
-    connectDB();
+    connectDB();  
     console.log(`server is running at http://localhost:${PORT}`)
-})
+})   

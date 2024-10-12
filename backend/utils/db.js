@@ -1,6 +1,6 @@
 import mongoose  from "mongoose";
 
-//create connectio to database--------
+//create connection to database--------
 const connectDB = async ()=>{
     try{
         await mongoose.connect(process.env.MONGO_URI)
@@ -8,6 +8,6 @@ const connectDB = async ()=>{
     }catch(error){
         console.log('mongodb connection error')
     }
-}
+} 
 
 export default connectDB;
